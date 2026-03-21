@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fraud Dashboard</title>
+
+<link rel="stylesheet" href="{{url_for('static',filename='style.css')}}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+</head>
+
+<body>
+
+<h2>Welcome {{session['user']}}</h2>
+
+<header>
+    <div class="nav-container">
+        <h1><i class="fas fa-shield-alt"></i> Fraud Detection</h1>
+        <a href="/logout">Logout</a>
+    </div>
+</header>
+
+<div class="container">
+
+<!-- 🔥 LOADER -->
+<div id="loader" style="display:none;text-align:center;margin-top:20px;">
+    <div class="loader"></div>
+    <p>Scanning... And analyzing 🔍</p>
+</div>
+
+<!-- ================= CARDS ================= -->
+<div class="card-container">
+
+<div class="card">
+<h2>CSV Fraud Scan</h2>
+<form method="post" enctype="multipart/form-data" onsubmit="showLoader()">
+<input type="file" name="file"><br><br>
+<button>Scan</button>
+</form>
+</div>
+
+<div class="card">
+<h2>Scam Detector</h2>
+<form method="post" onsubmit="showLoader()">
+<textarea name="message" placeholder="Enter message to detect scam..."></textarea><br><br>
+<button>Detect</button>
+</form>
+</div>
+
+<div class="card">
+<h2>WhatsApp Scanner</h2>
+<form method="post" onsubmit="showLoader()">
+<textarea name="message" placeholder="Enter WhatsApp message..."></textarea> <br><br>
+<button>Scan</button>
+</form>
+</div>
+
+<div class="card">
+<h2>Image Scan</h2>
+<form method="post" enctype="multipart/form-data" onsubmit="showLoader()">
+<input type="file" name="image"><br><br>
+<button>Scan</button>
+</form>
+</div>
+
+</div>
+
+<!-- ================= RESULTS ================= -->
+{% if results %}
+<div class="card result-card">
+<h2>Scan Results</h2>
+
+<div class="table-container">
+<table>
+<tr>
+{% for k in results[0].keys() %}
+<th>{{k}}</th>
+{% endfor %}
+</tr>
+
+{% for r in results %}
+<tr>
+{% for v in r.values() %}
+<td>
+{% if "⚠" in v|string %}
+<span style="color:red;font-weight:bold;">{{v}}</span>
+{% else %}
+{{v}}
+{% endif %}
+</td>
+{% endfor %}
+</tr>
+{% endfor %}
+</table>
+</div>
+
+<!-- ================= AI CONFIDENCE ================= -->
+{% set total = safe + medium + high %}
+{% set percent = (high / total * 100) if total > 0 else 0 %}
+
+<div style="margin-top:20px;">
+<p><b>AI Risk Level:</b></p>
+
+<div style="background:#ddd;border-radius:10px;overflow:hidden;">
+<div style="
+width: {{percent}}%;
+background: {{ 'red' if percent>60 else 'orange' if percent>30 else 'green' }};
+color:white;
+padding:6px;
+text-align:center;">
+{{percent|round(1)}}% Risk
+</div>
+</div>
+
+<!-- ✅ FINAL RESULT TEXT -->
+{% if percent < 30 %}
+    <p style="color:green;font-weight:bold;margin-top:10px;">
+    ✅ SAFE — No fraud detected
+    </p>
+{% elif percent < 60 %}
+    <p style="color:orange;font-weight:bold;margin-top:10px;">
+    ⚠ SUSPICIOUS — Be careful
+    </p>
+{% else %}
+    <p style="color:red;font-weight:bold;margin-top:10px;">
+    🚨 FRAUD DETECTED — High risk
+    </p>
+{% endif %}
+
+
+</div>
+
+</div>
+{% endif %}
+
+<!-- ================= ANALYTICS ================= -->
+<div class="card analytics-card">
+<h2>Fraud Analytics</h2>
+<canvas id="chart"></canvas>
+</div>
+
+</div>
+
+<!-- ================= SCRIPT ================= -->
+<script>
+function showLoader(){
+    document.getElementById("loader").style.display = "block";
+}
+</script>
+
+<script>
+new Chart(document.getElementById("chart"),{
+    type:"bar",
+    data:{
+        labels:["Safe","Medium","High"],
+        datasets:[{
+            label:"Transactions",
+            data:[{{safe}},{{medium}},{{high}}],
+            backgroundColor:['#28a745','#ffc107','#dc3545']
+        }]
+    },
+    options:{
+        animation:{
+            duration:1200   // only chart animates
+        },
+        responsive:true
+    }
+});
+</script>
+
+</body>
+</html>
