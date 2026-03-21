@@ -6,6 +6,6 @@ joblib
 flask-mysqldb
 flask-mail
 gunicorn
-opencv-python
+opencv-python-headless
 pytesseract
 werkzeug
